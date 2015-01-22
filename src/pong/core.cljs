@@ -9,9 +9,11 @@
                          :position [0 0.5]}
                   :right {:rect {:height 0.05 :width 0.01}
                           :position [0.99 0.5]}
+                  :lower-boundary {:boundary {:position 1 :reflect :up}}
+                  :upper-boundary {:boundary {:position 0 :reflect :down}}
                   :ball {:rect {:height 0.01 :width 0.01}
-                         :position [0.5 0.5]
-                         :direction [0.01 0.01]
+                         :position [0.1 0.3]
+                         :direction [0.01 -0.01]
                          :velocity 0.1}}))
 
 (defn fill-style [canvas style]
@@ -42,14 +44,38 @@
     (render-rect canvas (:rect (:left state)) (:position (:left state)))
     (render-rect canvas (:rect (:right state)) (:position (:right state)))))
 
+(defn move [moveable]
+  (let [[px py] (:position moveable)
+        [dx dy] (:direction moveable)
+        velocity (:velocity moveable)]
+    (assoc-in moveable [:position]
+              [(+ px (* velocity dx)) (+ py (* velocity dy))])))
+
+(defn collision [object boundary]
+  (let [[_ opy] (:position object)
+        [_ ody] (:direction object)
+        boundary-y (:position (:boundary boundary))
+        reflect (:reflect (:boundary boundary))]
+    (cond
+      (and (> opy boundary-y) (= reflect :up)) (-> object
+                                                      (assoc-in [:position 1] (+ 1 (- 1 opy)))
+                                                      (assoc-in [:direction 1] (- ody)))
+      (and (< opy boundary-y) (= reflect :down)) (-> object
+                                                      (assoc-in [:position 1] (- opy))
+                                                      (assoc-in [:direction 1] (- ody)))
+ 
+      :else object)))
+
+(defn collisions [object boundaries]
+  (reduce collision object boundaries))
+
 (defn physics [state]
   (let [ball (:ball state)
-        [px py] (:position ball)
-        [dx dy] (:direction ball)
-        velocity (:velocity ball)]
-    (println (:ball state))
-    (assoc-in state [:ball :position]
-              [(+ px (* velocity dx)) (+ py (* velocity dy))])))
+        lower-boundary (:lower-boundary state)
+        upper-boundary (:upper-boundary state)]
+    (assoc-in state [:ball] (-> ball
+                                move
+                                (collisions [lower-boundary upper-boundary])))))
 
 (defn start-physics! []
   (js/setInterval (fn [] (swap! state physics)) 10))
