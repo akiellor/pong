@@ -10,7 +10,9 @@
                   :right {:rect {:height 0.05 :width 0.01}
                           :position [0.99 0.5]}
                   :ball {:rect {:height 0.01 :width 0.01}
-                         :position [0.5 0.5]}}))
+                         :position [0.5 0.5]
+                         :direction [0.01 0.01]
+                         :velocity 0.1}}))
 
 (defn fill-style [canvas style]
   (set! (. canvas -fillStyle) style))
@@ -32,22 +34,25 @@
     (fill-rect canvas x y width height)))
 
 (defn render [canvas state]
-  (let [height 500
-        width 500]
+  (let [height (.-height canvas)
+        width (.-width canvas)]
     (fill-style canvas "black")
     (fill-rect canvas 0 0 width height)
     (render-rect canvas (:rect (:ball state)) (:position (:ball state)))
     (render-rect canvas (:rect (:left state)) (:position (:left state)))
     (render-rect canvas (:rect (:right state)) (:position (:right state)))))
 
-(defn new-ball-position [state]
+(defn physics [state]
   (let [ball (:ball state)
-        [x y] (:position ball)
-        [dx dy] (:direction ball)]
-    state))
+        [px py] (:position ball)
+        [dx dy] (:direction ball)
+        velocity (:velocity ball)]
+    (println (:ball state))
+    (assoc-in state [:ball :position]
+              [(+ px (* velocity dx)) (+ py (* velocity dy))])))
 
-(defn start-ball! []
-  (js/setInterval (fn [] (swap! state new-ball-position)) 100))
+(defn start-physics! []
+  (js/setInterval (fn [] (swap! state physics)) 10))
 
 (defn loop-render! [canvas]
   (js/setInterval (fn [] (render canvas @state)) 100))
@@ -73,7 +78,7 @@
     (set! (. canvas -height) 500)
     (set! (. canvas -width) 500)
     (loop-render! canvas)
-    (start-ball!)
+    (start-physics!)
     (start-player! :left {87 :up 83 :down})
     (start-player! :right {38 :up 40 :down})))
 
