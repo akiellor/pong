@@ -35,14 +35,18 @@
     (fill-style canvas "white")
     (fill-rect canvas x y width height)))
 
+(defn rect? [value] (and (contains? value :rect) (contains? value :position)))
+
+(defn render-rects [canvas state]
+  (let [rects (filter rect? (vals state))]
+    (doall (map #(render-rect canvas (:rect %) (:position %)) rects))))
+
 (defn render [canvas state]
   (let [height (.-height canvas)
         width (.-width canvas)]
     (fill-style canvas "black")
     (fill-rect canvas 0 0 width height)
-    (render-rect canvas (:rect (:ball state)) (:position (:ball state)))
-    (render-rect canvas (:rect (:left state)) (:position (:left state)))
-    (render-rect canvas (:rect (:right state)) (:position (:right state)))))
+    (render-rects canvas state)))
 
 (defn move [moveable]
   (let [[px py] (:position moveable)
