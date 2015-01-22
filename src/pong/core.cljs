@@ -9,8 +9,12 @@
                          :position [0 0.5]}
                   :right {:rect {:height 0.05 :width 0.01}
                           :position [0.99 0.5]}
-                  :lower-boundary {:boundary {:position 1 :reflect :up}}
-                  :upper-boundary {:boundary {:position 0 :reflect :down}}
+                  :lower-boundary {:rect {:height 0.01 :width 1}
+                                   :position [0 0.98]
+                                   :reflect :up}
+                  :upper-boundary {:rect {:height 0.01 :width 1}
+                                   :position [0 0.01]
+                                   :reflect :down}
                   :ball {:rect {:height 0.01 :width 0.01}
                          :position [0.1 0.3]
                          :direction [0.01 -0.01]
@@ -56,17 +60,19 @@
               [(+ px (* velocity dx)) (+ py (* velocity dy))])))
 
 (defn collision [object boundary]
-  (let [[_ opy] (:position object)
+  (let [orect (:rect object)
+        [_ opy] (:position object)
         [_ ody] (:direction object)
-        boundary-y (:position (:boundary boundary))
-        reflect (:reflect (:boundary boundary))]
+        brect (:rect boundary)
+        [_ by] (:position boundary)
+        reflect (:reflect boundary)]
     (cond
-      (and (> opy boundary-y) (= reflect :up)) (-> object
-                                                      (assoc-in [:position 1] (+ 1 (- 1 opy)))
-                                                      (assoc-in [:direction 1] (- ody)))
-      (and (< opy boundary-y) (= reflect :down)) (-> object
-                                                      (assoc-in [:position 1] (- opy))
-                                                      (assoc-in [:direction 1] (- ody)))
+      (and (>= opy by) (= reflect :up)) (-> object
+                                            (assoc-in [:position 1] (+ by (- by opy)))
+                                            (assoc-in [:direction 1] (- ody)))
+      (and (<= opy by) (= reflect :down)) (-> object
+                                              (assoc-in [:position 1] (+ by (- by opy)))
+                                              (assoc-in [:direction 1] (- ody)))
  
       :else object)))
 
