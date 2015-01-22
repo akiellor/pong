@@ -6,9 +6,11 @@
 (enable-console-print!)
 
 (def state (atom {:left {:rect {:height 0.05 :width 0.01}
-                         :position [0 0.5]}
+                         :position [0 0.5]
+                         :reflect :right}
                   :right {:rect {:height 0.05 :width 0.01}
-                          :position [0.99 0.5]}
+                          :position [0.99 0.5]
+                          :reflect :left}
                   :lower-boundary {:rect {:height 0.01 :width 1}
                                    :position [0 0.98]
                                    :reflect :up}
@@ -16,8 +18,8 @@
                                    :position [0 0.01]
                                    :reflect :down}
                   :ball {:rect {:height 0.01 :width 0.01}
-                         :position [0.1 0.3]
-                         :direction [0.01 -0.01]
+                         :position [0.97 0.5]
+                         :direction [0.01 0]
                          :velocity 0.1}}))
 
 (defn fill-style [canvas style]
@@ -59,22 +61,47 @@
     (assoc-in moveable [:position]
               [(+ px (* velocity dx)) (+ py (* velocity dy))])))
 
+(defn rect->cordinates [rect]
+  (let [[x y] (:position rect)]
+    [[x y] [(+ x (get-in rect [:rect :width])) (+ y (get-in rect [:rect :height]))]]))
+
+(defn intersect? [recta rectb]
+  (let [[[ax ay] [adx ady]] (rect->cordinates recta)
+        [[bx by] [bdx bdy]] (rect->cordinates rectb)]
+    (and
+      (or (<= ax bx adx bdx)
+          (<= bx ax bdx adx)
+          (<= ax bx bdx adx)
+          (<= bx ax adx bdx))
+      (or (<= ay by ady bdy)
+          (<= by ay bdy ady)
+          (<= ay by bdy ady)
+          (<= by ay ady bdy)))))
+
+(defn flip-direction-y [object]
+  (assoc-in object [:direction 1] (- (get-in object [:direction 1]))))
+
+(defn flip-direction-x [object]
+  (assoc-in object [:direction 0] (- (get-in object [:direction 0]))))
+
 (defn collision [object boundary]
-  (let [orect (:rect object)
-        [_ opy] (:position object)
-        [_ ody] (:direction object)
-        brect (:rect boundary)
-        [_ by] (:position boundary)
-        reflect (:reflect boundary)]
-    (cond
-      (and (>= opy by) (= reflect :up)) (-> object
-                                            (assoc-in [:position 1] (+ by (- by opy)))
-                                            (assoc-in [:direction 1] (- ody)))
-      (and (<= opy by) (= reflect :down)) (-> object
-                                              (assoc-in [:position 1] (+ by (- by opy)))
-                                              (assoc-in [:direction 1] (- ody)))
- 
-      :else object)))
+  (let [[[ox oy] [odx ody]] (rect->cordinates object)
+        [[bx by] [bdx bdy]] (rect->cordinates boundary)]
+    (if (intersect? object boundary)
+      (case (:reflect boundary)
+        :up (-> object
+                (assoc-in [:position 1] by)
+                flip-direction-y)
+        :down (-> object
+                  (assoc-in [:position 1] bdy)
+                  flip-direction-y)
+        :left (-> object
+                  (assoc-in [:position 0] ox)
+                  flip-direction-x)
+        :right (-> object
+                   (assoc-in [:position 0] bdx)
+                   flip-direction-x))
+      object)))
 
 (defn collisions [object boundaries]
   (reduce collision object boundaries))
@@ -82,10 +109,12 @@
 (defn physics [state]
   (let [ball (:ball state)
         lower-boundary (:lower-boundary state)
-        upper-boundary (:upper-boundary state)]
+        upper-boundary (:upper-boundary state)
+        left (:left state)
+        right (:right state)]
     (assoc-in state [:ball] (-> ball
                                 move
-                                (collisions [lower-boundary upper-boundary])))))
+                                (collisions [left right upper-boundary lower-boundary])))))
 
 (defn start-physics! []
   (js/setInterval (fn [] (swap! state physics)) 10))
