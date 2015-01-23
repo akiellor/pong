@@ -57,7 +57,7 @@
     (if (intersect? ball boundary)
       (case direction
         :up (-> ball
-                (assoc-in [:position 1] by)
+                (assoc-in [:position 1] (- by (get-in ball [:rect :height])))
                 flip-direction-y)
         :down (-> ball
                   (assoc-in [:position 1] bdy)
