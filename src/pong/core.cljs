@@ -84,12 +84,16 @@
   (assoc-in state [:ball] (reflect-ball (:ball state) boundary :down)))
 
 (def state (atom {:game {:scores {:left 0 :right 0}}
+                  :left-text {:text (fn [state] (get-in state [:game :scores :left]))
+                              :position [0.30 0.20]}
                   :left {:rect {:height 0.05 :width 0.01}
                          :position [0.05 0.5]
                          :on-collide reflect-ball-right}
                   :score-left {:rect {:height 0.96 :width 0.05}
                                :position [0 0.02]
                                :on-collide score-left}
+                  :right-text {:text (fn [state] (get-in state [:game :scores :right]))
+                               :position [0.70 0.20]}
                   :right {:rect {:height 0.05 :width 0.01}
                           :position [0.94 0.5]
                           :on-collide reflect-ball-left}
@@ -113,6 +117,9 @@
 (defn fill-rect [canvas x y dx dy]
   (.fillRect canvas x y dx dy))
 
+(defn fill-text [canvas text x y]
+  (.fillText canvas text x y))
+
 (defn percentage->coord [percentage height width]
   (let [[px py] percentage]
     [(* width px) (* height py)]))
@@ -132,12 +139,26 @@
   (let [rects (filter rect? (vals state))]
     (doall (map #(render-rect canvas (:rect %) (:position %)) rects))))
 
+(defn text? [value] (and (contains? value :text) (contains? value :position)))
+
+(defn render-text [canvas text position]
+  (let [cheight (.-height canvas)
+        cwidth (.-width canvas)
+        [x y] (percentage->coord position cheight cwidth)]
+    (fill-style canvas "white")
+    (fill-text canvas text x y)))
+
+(defn render-texts [canvas state]
+  (let [texts (filter text? (vals state))]
+    (doall (map #(render-text canvas ((:text %) state) (:position %)) texts))))
+
 (defn render [canvas state]
   (let [height (.-height canvas)
         width (.-width canvas)]
     (fill-style canvas "black")
     (fill-rect canvas 0 0 width height)
-    (render-rects canvas state)))
+    (render-rects canvas state)
+    (render-texts canvas state)))
 
 (defn collisions [object boundaries]
   (filter #(intersect? object %) boundaries))
