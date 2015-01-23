@@ -118,6 +118,8 @@
   (.fillRect canvas x y dx dy))
 
 (defn fill-text [canvas text x y]
+  (set! (. canvas -font) "48px Monospace")
+  (set! (. canvas -textAlign) "center")
   (.fillText canvas text x y))
 
 (defn percentage->coord [percentage height width]
