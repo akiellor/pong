@@ -104,8 +104,8 @@
                                    :on-collide reflect-ball-down}
                   :ball {:rect {:height 0.01 :width 0.01}
                          :position [0.5 0.5]
-                         :direction [0.01 0]
-                         :velocity 0.1}}))
+                         :direction [0.01 0.01]
+                         :velocity 0.2}}))
 
 (defn fill-style [canvas style]
   (set! (. canvas -fillStyle) style))
