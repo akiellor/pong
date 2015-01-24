@@ -83,12 +83,23 @@
 (defn reflect-ball-down [state boundary]
   (assoc-in state [:ball] (reflect-ball (:ball state) boundary :down)))
 
+(defn left-up [state] (assoc-in state [:left :direction 1] -0.01))
+(defn left-down [state] (assoc-in state [:left :direction 1] 0.01))
+(defn left-stop [state] (assoc-in state [:left :direction 1] 0))
+(defn right-up [state] (assoc-in state [:right :direction 1] -0.01))
+(defn right-down [state] (assoc-in state [:right :direction 1] 0.01))
+(defn right-stop [state] (assoc-in state [:right :direction 1] 0))
+
 (def state (atom {:game {:scores {:left 0 :right 0}}
                   :left-text {:text (fn [state] (get-in state [:game :scores :left]))
                               :position [0.30 0.20]}
                   :left {:rect {:height 0.05 :width 0.01}
                          :position [0.05 0.5]
-                         :on-collide reflect-ball-right}
+                         :on-collide reflect-ball-right
+                         :keyboard {87 {:press left-up :release left-stop}
+                                    83 {:press left-down :release left-stop}}
+                         :direction [0 0]
+                         :velocity 0.3}
                   :score-left {:rect {:height 0.96 :width 0.05}
                                :position [0 0.02]
                                :on-collide score-left}
@@ -96,7 +107,11 @@
                                :position [0.70 0.20]}
                   :right {:rect {:height 0.05 :width 0.01}
                           :position [0.94 0.5]
-                          :on-collide reflect-ball-left}
+                          :on-collide reflect-ball-left
+                          :keyboard {38 {:press right-up :release right-stop}
+                                     40 {:press right-down :release right-stop}}
+                          :direction [0 0]
+                          :velocity 0.3}
                   :score-right {:rect {:height 0.96 :width 0.05}
                                 :position [0.95 0.02]
                                 :on-collide score-right}
@@ -162,16 +177,23 @@
     (render-rects canvas state)
     (render-texts canvas state)))
 
-(defn collisions [object boundaries]
-  (filter #(intersect? object %) boundaries))
-
-(defn physics [state]
+(defn collisions [state]
   (let [ball (:ball state)
         boundaries (filter #(contains? % :on-collide) (vals state))
-        moved-ball (move ball)
-        new-state (assoc state :ball moved-ball)
-        colls (collisions moved-ball boundaries)]
-    (reduce #((:on-collide %2) %1 %2) new-state colls)))
+        colls (filter #(intersect? ball %) boundaries)]
+    (reduce #((:on-collide %2) %1 %2) state colls)))
+
+(defn moveable? [value]
+  (and (contains? value :direction) (contains? value :velocity)))
+
+(defn movement [state]
+  (let [moveables (filter #(moveable? (last %)) (seq state))]
+    (reduce #(assoc %1 (first %2) (move (last %2))) state moveables)))
+
+(defn physics [state]
+  (-> state
+      movement
+      collisions))
 
 (defn start-physics! []
   (js/setInterval (fn [] (swap! state physics)) 10))
@@ -188,12 +210,27 @@
              :down (+ current-position 0.05)
              current-position))))
 
-(defn start-player! [player keycodes]
+(defn input-handler [definition event keycode]
+  (tap (or (get-in definition [keycode event]) identity)))
+
+(defn keyboard? [value]
+  (contains? value :keyboard))
+
+(defn keyboard [state event keycode]
+  (let [input-definitions (map :keyboard (filter keyboard? (vals state)))]
+    (reduce #((input-handler %2 event keycode) %1) state input-definitions)))
+
+(defn start-keyboard! []
   (events/listen
     js/document goog.events.EventType.KEYDOWN
     (fn [evt]
-      (let [code (-> evt .-keyCode)]
-        (swap! state new-player-position player code keycodes)))))
+      (let [keycode (-> evt .-keyCode)]
+        (swap! state keyboard :press keycode))))
+  (events/listen
+    js/document goog.events.EventType.KEYUP
+    (fn [evt]
+      (let [keycode (-> evt .-keyCode)]
+        (swap! state keyboard :release keycode)))))
 
 (defn main []
   (let [canvas (.getContext (.getElementById js/document "app") "2d")]
@@ -201,7 +238,6 @@
     (set! (. canvas -width) 500)
     (loop-render! canvas)
     (start-physics!)
-    (start-player! :left {87 :up 83 :down})
-    (start-player! :right {38 :up 40 :down})))
+    (start-keyboard!)))
 
 (fw/start {:on-jsload main})
