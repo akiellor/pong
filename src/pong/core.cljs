@@ -199,7 +199,8 @@
   (js/setInterval (fn [] (swap! state physics)) 10))
 
 (defn loop-render! [canvas]
-  (js/setInterval (fn [] (render canvas @state)) 100))
+  (.requestAnimationFrame js/window (fn [] (loop-render! canvas)))
+  (render canvas @state))
 
 (defn new-player-position [state player code keycodes]
   (let [current-position (get-in state [player :position 1])
@@ -211,7 +212,7 @@
              current-position))))
 
 (defn input-handler [definition event keycode]
-  (tap (or (get-in definition [keycode event]) identity)))
+  (or (get-in definition [keycode event]) identity))
 
 (defn keyboard? [value]
   (contains? value :keyboard))
