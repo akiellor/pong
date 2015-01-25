@@ -102,13 +102,8 @@
                          :direction [0.01 0.01]
                          :velocity 0.2}}))
 
-(defn physics [state]
-  (-> state
-      p/movement
-      p/collisions))
-
 (defn start-physics! []
-  (js/setInterval (fn [] (swap! state physics)) 10))
+  (js/setInterval (fn [] (swap! state p/physics)) 10))
 
 (defn loop-render! [canvas]
   (.requestAnimationFrame js/window (fn [] (loop-render! canvas)))

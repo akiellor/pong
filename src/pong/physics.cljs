@@ -36,3 +36,8 @@
         boundaries (filter #(contains? % :on-collide) (vals state))
         colls (filter #(intersect? ball %) boundaries)]
     (reduce #((:on-collide %2) %1 %2) state colls)))
+
+(defn physics [state]
+  (-> state
+      movement
+      collisions))
