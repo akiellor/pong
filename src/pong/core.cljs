@@ -1,7 +1,8 @@
 (ns pong.core
   (:require
     [figwheel.client :as fw]
-    [goog.events :as events]))
+    [goog.events :as events]
+    [pong.physics :as p]))
 
 (enable-console-print!)
 
@@ -183,16 +184,9 @@
         colls (filter #(intersect? ball %) boundaries)]
     (reduce #((:on-collide %2) %1 %2) state colls)))
 
-(defn moveable? [value]
-  (and (contains? value :direction) (contains? value :velocity)))
-
-(defn movement [state]
-  (let [moveables (filter #(moveable? (last %)) (seq state))]
-    (reduce #(assoc %1 (first %2) (move (last %2))) state moveables)))
-
 (defn physics [state]
   (-> state
-      movement
+      p/movement
       collisions))
 
 (defn start-physics! []
