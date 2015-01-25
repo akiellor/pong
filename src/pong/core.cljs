@@ -22,30 +22,6 @@
 (defn score-left [state]
   (score state :left))
 
-(defn rect->cordinates [rect]
-  (let [[x y] (:position rect)]
-    [[x y] [(+ x (get-in rect [:rect :width])) (+ y (get-in rect [:rect :height]))]]))
-
-(defn intersect? [recta rectb]
-  (let [[[ax ay] [adx ady]] (rect->cordinates recta)
-        [[bx by] [bdx bdy]] (rect->cordinates rectb)]
-    (and
-      (or (<= ax bx adx bdx)
-          (<= bx ax bdx adx)
-          (<= ax bx bdx adx)
-          (<= bx ax adx bdx))
-      (or (<= ay by ady bdy)
-          (<= by ay bdy ady)
-          (<= ay by bdy ady)
-          (<= by ay ady bdy)))))
-
-(defn move [moveable]
-  (let [[px py] (:position moveable)
-        [dx dy] (:direction moveable)
-        velocity (:velocity moveable)]
-    (assoc-in moveable [:position]
-              [(+ px (* velocity dx)) (+ py (* velocity dy))])))
-
 (defn flip-direction-y [object]
   (assoc-in object [:direction 1] (- (get-in object [:direction 1]))))
 
@@ -53,23 +29,21 @@
   (assoc-in object [:direction 0] (- (get-in object [:direction 0]))))
 
 (defn reflect-ball [ball boundary direction]
-  (let [[[ox oy] [odx ody]] (rect->cordinates ball)
-        [[bx by] [bdx bdy]] (rect->cordinates boundary)]
-    (if (intersect? ball boundary)
-      (case direction
-        :up (-> ball
-                (assoc-in [:position 1] (- by (get-in ball [:rect :height])))
+  (let [[[ox oy] [odx ody]] (p/rect->cordinates ball)
+        [[bx by] [bdx bdy]] (p/rect->cordinates boundary)]
+    (case direction
+      :up (-> ball
+              (assoc-in [:position 1] (- by (get-in ball [:rect :height])))
+              flip-direction-y)
+      :down (-> ball
+                (assoc-in [:position 1] bdy)
                 flip-direction-y)
-        :down (-> ball
-                  (assoc-in [:position 1] bdy)
-                  flip-direction-y)
-        :left (-> ball
-                  (assoc-in [:position 0] ox)
-                  flip-direction-x)
-        :right (-> ball
-                   (assoc-in [:position 0] bdx)
-                   flip-direction-x))
-      ball)))
+      :left (-> ball
+                (assoc-in [:position 0] ox)
+                flip-direction-x)
+      :right (-> ball
+                 (assoc-in [:position 0] bdx)
+                 flip-direction-x))))
 
 
 (defn reflect-ball-right [state boundary]
@@ -178,16 +152,10 @@
     (render-rects canvas state)
     (render-texts canvas state)))
 
-(defn collisions [state]
-  (let [ball (:ball state)
-        boundaries (filter #(contains? % :on-collide) (vals state))
-        colls (filter #(intersect? ball %) boundaries)]
-    (reduce #((:on-collide %2) %1 %2) state colls)))
-
 (defn physics [state]
   (-> state
       p/movement
-      collisions))
+      p/collisions))
 
 (defn start-physics! []
   (js/setInterval (fn [] (swap! state physics)) 10))
