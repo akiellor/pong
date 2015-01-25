@@ -109,15 +109,6 @@
   (.requestAnimationFrame js/window (fn [] (loop-render! canvas)))
   (r/render canvas @state))
 
-(defn new-player-position [state player code keycodes]
-  (let [current-position (get-in state [player :position 1])
-        direction (get keycodes code)]
-    (assoc-in state [player :position 1]
-           (case direction
-             :up (- current-position 0.05)
-             :down (+ current-position 0.05)
-             current-position))))
-
 (defn input-handler [definition event keycode]
   (or (get-in definition [keycode event]) identity))
 
