@@ -1,9 +1,9 @@
 (ns pong.core
   (:require
     [figwheel.client :as fw]
-    [goog.events :as events]
     [pong.physics :as p]
-    [pong.render :as r]))
+    [pong.render :as r]
+    [pong.keyboard :as k]))
 
 (enable-console-print!)
 
@@ -109,34 +109,12 @@
   (.requestAnimationFrame js/window (fn [] (loop-render! canvas)))
   (r/render canvas @state))
 
-(defn input-handler [definition event keycode]
-  (or (get-in definition [keycode event]) identity))
-
-(defn keyboard? [value]
-  (contains? value :keyboard))
-
-(defn keyboard [state event keycode]
-  (let [input-definitions (map :keyboard (filter keyboard? (vals state)))]
-    (reduce #((input-handler %2 event keycode) %1) state input-definitions)))
-
-(defn start-keyboard! []
-  (events/listen
-    js/document goog.events.EventType.KEYDOWN
-    (fn [evt]
-      (let [keycode (-> evt .-keyCode)]
-        (swap! state keyboard :press keycode))))
-  (events/listen
-    js/document goog.events.EventType.KEYUP
-    (fn [evt]
-      (let [keycode (-> evt .-keyCode)]
-        (swap! state keyboard :release keycode)))))
-
 (defn main []
   (let [canvas (.getContext (.getElementById js/document "app") "2d")]
     (set! (. canvas -height) 500)
     (set! (. canvas -width) 500)
     (loop-render! canvas)
     (start-physics!)
-    (start-keyboard!)))
+    (k/start-keyboard! state)))
 
 (fw/start {:on-jsload main})
