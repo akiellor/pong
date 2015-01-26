@@ -37,22 +37,37 @@
           (<= ay by bdy ady)
           (<= by ay ady bdy)))))
 
-(defn collisions [state]
-  (let [ball (:ball state)
-        boundaries (filter #(contains? % :on-collide) (vals state))
-        colls (filter #(intersect? ball %) boundaries)]
-    (reduce #((:on-collide %2) %1 %2) state colls)))
-
-(defn physics [state]
-  (-> state
-      movement
-      collisions))
+(defn on-collides [state colls]
+  (let [with-fn (filter #(:on-collide %) colls)]
+    (reduce #((:on-collide %2) %1 %2) state with-fn)))
 
 (defn flip-direction-y [object]
   (update-in object [:velocity 1] -))
 
 (defn flip-direction-x [object]
   (update-in object [:velocity 0] -))
+
+(defn choose-flip [coll]
+  (case (:surface coll)
+        :horizontal flip-direction-y
+        :vertical flip-direction-x
+        :else identity))
+
+(defn reflects [ball colls]
+  (reduce #((choose-flip %2) %1) ball colls))
+
+(defn collisions [state]
+  (let [ball (:ball state)
+        boundaries (filter #(contains? % :surface) (vals state))
+        colls (filter #(intersect? ball %) boundaries)]
+    (-> state
+        (update-in [:ball] #(reflects % colls))
+        (on-collides colls))))
+
+(defn physics [state]
+  (-> state
+      movement
+      collisions))
 
 (defn reflect [object boundary direction]
   (let [[[ox oy] [odx ody]] (rect->cordinates object)

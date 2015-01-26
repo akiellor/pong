@@ -29,38 +29,46 @@
 (defn right-down [state] (assoc-in state [:right :velocity 1] paddle-speed))
 (defn right-stop [state] (assoc-in state [:right :velocity 1] paddle-stop))
 
-(def state (atom {:game {:scores {:left 0 :right 0}}
+(def vanilla-game-state {:game {:scores {:left 0 :right 0}}
                   :left-text {:text (fn [state] (get-in state [:game :scores :left]))
                               :position [0.30 0.20]}
                   :left {:rect {:height 0.05 :width 0.01}
                          :position [0.05 0.5]
-                         :on-collide #(p/reflect-right %1 :ball %2)
+                         :surface :vertical
                          :keyboard {87 {:press left-up :release left-stop}
                                     83 {:press left-down :release left-stop}}
                          :velocity [0 0]}
                   :score-left {:rect {:height 0.96 :width 0.05}
                                :position [0 0.02]
+                               :surface :vertical
                                :on-collide score-left}
                   :right-text {:text (fn [state] (get-in state [:game :scores :right]))
                                :position [0.70 0.20]}
                   :right {:rect {:height 0.05 :width 0.01}
                           :position [0.94 0.5]
-                          :on-collide #(p/reflect-left %1 :ball %2)
+                          :surface :vertical
                           :keyboard {38 {:press right-up :release right-stop}
                                      40 {:press right-down :release right-stop}}
                           :velocity [0 0]}
                   :score-right {:rect {:height 0.96 :width 0.05}
                                 :position [0.95 0.02]
+                                :surface :vertical
                                 :on-collide score-right}
                   :lower-boundary {:rect {:height 0.01 :width 1}
                                    :position [0 0.98]
-                                   :on-collide #(p/reflect-up %1 :ball %2)}
+                                   :surface :horizontal}
                   :upper-boundary {:rect {:height 0.01 :width 1}
                                    :position [0 0.01]
-                                   :on-collide #(p/reflect-down %1 :ball %2)}
+                                   :surface :horizontal}
                   :ball {:rect {:height 0.01 :width 0.01}
-                         :position [0.15 0.9]
-                         :velocity [0.05 -0.05]}}))
+                         :position [0.5 0.5]
+                         :velocity [0.5 0.5]
+                         :acceleration [0 0]}})
+
+(def state (atom vanilla-game-state))
+
+(defn set-acceleration [x y]
+  (swap! state #(assoc-in vanilla-game-state [:ball :acceleration] [x y])))
 
 (defn main []
   (let [canvas (.getContext (.getElementById js/document "app") "2d")]
