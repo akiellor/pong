@@ -12,7 +12,7 @@
     (-> state
       (update-in [:game :scores player] inc)
       (assoc-in [:ball :position] [0.5 0.5])
-      (update-in [:ball :velocity] #(min 1.5 (+ % 0.05))))))
+      (update-in [:ball :velocity] #(min 0.75 (+ % 0.05))))))
 
 (defn score-right [state]
   (score state :right))
