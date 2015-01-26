@@ -20,42 +20,6 @@
 (defn score-left [state]
   (score state :left))
 
-(defn flip-direction-y [object]
-  (update-in object [:direction 1] -))
-
-(defn flip-direction-x [object]
-  (update-in object [:direction 0] -))
-
-(defn reflect-ball [ball boundary direction]
-  (let [[[ox oy] [odx ody]] (p/rect->cordinates ball)
-        [[bx by] [bdx bdy]] (p/rect->cordinates boundary)]
-    (case direction
-      :up (-> ball
-              (assoc-in [:position 1] (- by (get-in ball [:rect :height])))
-              flip-direction-y)
-      :down (-> ball
-                (assoc-in [:position 1] bdy)
-                flip-direction-y)
-      :left (-> ball
-                (assoc-in [:position 0] ox)
-                flip-direction-x)
-      :right (-> ball
-                 (assoc-in [:position 0] bdx)
-                 flip-direction-x))))
-
-
-(defn reflect-ball-right [state boundary]
-  (update-in state [:ball] #(reflect-ball % boundary :right)))
-
-(defn reflect-ball-left [state boundary]
-  (update-in state [:ball] #(reflect-ball % boundary :left)))
-
-(defn reflect-ball-up [state boundary]
-  (update-in state [:ball] #(reflect-ball % boundary :up)))
-
-(defn reflect-ball-down [state boundary]
-  (update-in state [:ball] #(reflect-ball % boundary :down)))
-
 (defn left-up [state] (assoc-in state [:left :direction 1] -0.01))
 (defn left-down [state] (assoc-in state [:left :direction 1] 0.01))
 (defn left-stop [state] (assoc-in state [:left :direction 1] 0))
@@ -68,7 +32,7 @@
                               :position [0.30 0.20]}
                   :left {:rect {:height 0.05 :width 0.01}
                          :position [0.05 0.5]
-                         :on-collide reflect-ball-right
+                         :on-collide #(p/reflect-right %1 :ball %2)
                          :keyboard {87 {:press left-up :release left-stop}
                                     83 {:press left-down :release left-stop}}
                          :direction [0 0]
@@ -80,7 +44,7 @@
                                :position [0.70 0.20]}
                   :right {:rect {:height 0.05 :width 0.01}
                           :position [0.94 0.5]
-                          :on-collide reflect-ball-left
+                          :on-collide #(p/reflect-left %1 :ball %2)
                           :keyboard {38 {:press right-up :release right-stop}
                                      40 {:press right-down :release right-stop}}
                           :direction [0 0]
@@ -90,10 +54,10 @@
                                 :on-collide score-right}
                   :lower-boundary {:rect {:height 0.01 :width 1}
                                    :position [0 0.98]
-                                   :on-collide reflect-ball-up}
+                                   :on-collide #(p/reflect-up %1 :ball %2)}
                   :upper-boundary {:rect {:height 0.01 :width 1}
                                    :position [0 0.01]
-                                   :on-collide reflect-ball-down}
+                                   :on-collide #(p/reflect-down %1 :ball %2)}
                   :ball {:rect {:height 0.01 :width 0.01}
                          :position [0.5 0.5]
                          :direction [0.01 0.01]
