@@ -7,10 +7,6 @@
 
 (enable-console-print!)
 
-(defn tap [value]
-  (println value)
-  value)
-
 (defn score [state player]
   (let [velocity (get-in state [:ball :velocity])]
     (-> state
