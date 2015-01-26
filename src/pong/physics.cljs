@@ -41,3 +41,6 @@
   (-> state
       movement
       collisions))
+
+(defn start-physics! [state]
+  (js/setInterval (fn [] (swap! state physics)) 10))

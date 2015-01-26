@@ -99,19 +99,12 @@
                          :direction [0.01 0.01]
                          :velocity 0.2}}))
 
-(defn start-physics! []
-  (js/setInterval (fn [] (swap! state p/physics)) 10))
-
-(defn loop-render! [canvas]
-  (.requestAnimationFrame js/window (fn [] (loop-render! canvas)))
-  (r/render canvas @state))
-
 (defn main []
   (let [canvas (.getContext (.getElementById js/document "app") "2d")]
     (set! (. canvas -height) 500)
     (set! (. canvas -width) 500)
-    (loop-render! canvas)
-    (start-physics!)
+    (r/start-render! state canvas)
+    (p/start-physics! state)
     (k/start-keyboard! state)))
 
 (fw/start {:on-jsload main})

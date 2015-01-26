@@ -51,3 +51,6 @@
     (render-rects canvas state)
     (render-texts canvas state)))
 
+(defn start-render! [state canvas]
+  (.requestAnimationFrame js/window (fn [] (start-render! state canvas)))
+  (render canvas @state))
