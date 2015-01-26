@@ -8,12 +8,17 @@
     (assoc-in moveable [:position]
               [(+ px (* dx drag)) (+ py (* dy drag))])))
 
+(defn accelerate [moveable]
+  (let [[ax ay] (or (:acceleration moveable) [0 0])
+        [vx vy] (:velocity moveable)]
+    (assoc-in moveable [:velocity] [(+ ax vx) (+ ay vy)])))
+
 (defn moveable? [value]
   (contains? value :velocity))
 
 (defn movement [state]
   (let [moveables (filter #(moveable? (last %)) (seq state))]
-    (reduce #(assoc %1 (first %2) (move (last %2))) state moveables)))
+    (reduce #(assoc %1 (first %2) (move (accelerate (last %2)))) state moveables)))
 
 (defn rect->cordinates [rect]
   (let [[x y] (:position rect)]

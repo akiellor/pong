@@ -11,8 +11,7 @@
   (let [velocity (get-in state [:ball :velocity])]
     (-> state
       (update-in [:game :scores player] inc)
-      (assoc-in [:ball :position] [0.5 0.5])
-      (update-in [:ball :velocity] #(min 0.75 (+ % 0.05))))))
+      (assoc-in [:ball :position] [0.5 0.5]))))
 
 (defn score-right [state]
   (score state :right))
