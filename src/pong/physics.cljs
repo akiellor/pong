@@ -1,14 +1,15 @@
 (ns pong.physics)
 
+(def drag 0.01)
+
 (defn move [moveable]
   (let [[px py] (:position moveable)
-        [dx dy] (:direction moveable)
-        velocity (:velocity moveable)]
+        [dx dy] (:velocity moveable)]
     (assoc-in moveable [:position]
-              [(+ px (* velocity dx)) (+ py (* velocity dy))])))
+              [(+ px (* dx drag)) (+ py (* dy drag))])))
 
 (defn moveable? [value]
-  (and (contains? value :direction) (contains? value :velocity)))
+  (contains? value :velocity))
 
 (defn movement [state]
   (let [moveables (filter #(moveable? (last %)) (seq state))]
@@ -43,10 +44,10 @@
       collisions))
 
 (defn flip-direction-y [object]
-  (update-in object [:direction 1] -))
+  (update-in object [:velocity 1] -))
 
 (defn flip-direction-x [object]
-  (update-in object [:direction 0] -))
+  (update-in object [:velocity 0] -))
 
 (defn reflect [object boundary direction]
   (let [[[ox oy] [odx ody]] (rect->cordinates object)

@@ -20,12 +20,15 @@
 (defn score-left [state]
   (score state :left))
 
-(defn left-up [state] (assoc-in state [:left :direction 1] -0.01))
-(defn left-down [state] (assoc-in state [:left :direction 1] 0.01))
-(defn left-stop [state] (assoc-in state [:left :direction 1] 0))
-(defn right-up [state] (assoc-in state [:right :direction 1] -0.01))
-(defn right-down [state] (assoc-in state [:right :direction 1] 0.01))
-(defn right-stop [state] (assoc-in state [:right :direction 1] 0))
+(def paddle-speed 0.7)
+(def paddle-stop 0)
+
+(defn left-up [state] (assoc-in state [:left :velocity 1] (- paddle-speed)))
+(defn left-down [state] (assoc-in state [:left :velocity 1] paddle-speed))
+(defn left-stop [state] (assoc-in state [:left :velocity 1] paddle-stop))
+(defn right-up [state] (assoc-in state [:right :velocity 1] (- paddle-speed)))
+(defn right-down [state] (assoc-in state [:right :velocity 1] paddle-speed))
+(defn right-stop [state] (assoc-in state [:right :velocity 1] paddle-stop))
 
 (def state (atom {:game {:scores {:left 0 :right 0}}
                   :left-text {:text (fn [state] (get-in state [:game :scores :left]))
@@ -35,8 +38,7 @@
                          :on-collide #(p/reflect-right %1 :ball %2)
                          :keyboard {87 {:press left-up :release left-stop}
                                     83 {:press left-down :release left-stop}}
-                         :direction [0 0]
-                         :velocity 0.3}
+                         :velocity [0 0]}
                   :score-left {:rect {:height 0.96 :width 0.05}
                                :position [0 0.02]
                                :on-collide score-left}
@@ -47,8 +49,7 @@
                           :on-collide #(p/reflect-left %1 :ball %2)
                           :keyboard {38 {:press right-up :release right-stop}
                                      40 {:press right-down :release right-stop}}
-                          :direction [0 0]
-                          :velocity 0.3}
+                          :velocity [0 0]}
                   :score-right {:rect {:height 0.96 :width 0.05}
                                 :position [0.95 0.02]
                                 :on-collide score-right}
@@ -59,9 +60,8 @@
                                    :position [0 0.01]
                                    :on-collide #(p/reflect-down %1 :ball %2)}
                   :ball {:rect {:height 0.01 :width 0.01}
-                         :position [0.5 0.5]
-                         :direction [0.01 0.01]
-                         :velocity 0.2}}))
+                         :position [0.15 0.9]
+                         :velocity [0.05 -0.05]}}))
 
 (defn main []
   (let [canvas (.getContext (.getElementById js/document "app") "2d")]
