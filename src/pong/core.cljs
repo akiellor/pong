@@ -12,10 +12,11 @@
   value)
 
 (defn score [state player]
-  (let [current (get-in state [:game :scores player])]
+  (let [velocity (get-in state [:ball :velocity])]
     (-> state
-      (assoc-in [:game :scores player] (inc current))
-      (assoc-in [:ball :position] [0.5 0.5]))))
+      (update-in [:game :scores player] inc)
+      (assoc-in [:ball :position] [0.5 0.5])
+      (update-in [:ball :velocity] #(min 1.5 (+ % 0.05))))))
 
 (defn score-right [state]
   (score state :right))
@@ -24,10 +25,10 @@
   (score state :left))
 
 (defn flip-direction-y [object]
-  (assoc-in object [:direction 1] (- (get-in object [:direction 1]))))
+  (update-in object [:direction 1] -))
 
 (defn flip-direction-x [object]
-  (assoc-in object [:direction 0] (- (get-in object [:direction 0]))))
+  (update-in object [:direction 0] -))
 
 (defn reflect-ball [ball boundary direction]
   (let [[[ox oy] [odx ody]] (p/rect->cordinates ball)
@@ -48,16 +49,16 @@
 
 
 (defn reflect-ball-right [state boundary]
-  (assoc-in state [:ball] (reflect-ball (:ball state) boundary :right)))
+  (update-in state [:ball] #(reflect-ball % boundary :right)))
 
 (defn reflect-ball-left [state boundary]
-  (assoc-in state [:ball] (reflect-ball (:ball state) boundary :left)))
+  (update-in state [:ball] #(reflect-ball % boundary :left)))
 
 (defn reflect-ball-up [state boundary]
-  (assoc-in state [:ball] (reflect-ball (:ball state) boundary :up)))
+  (update-in state [:ball] #(reflect-ball % boundary :up)))
 
 (defn reflect-ball-down [state boundary]
-  (assoc-in state [:ball] (reflect-ball (:ball state) boundary :down)))
+  (update-in state [:ball] #(reflect-ball % boundary :down)))
 
 (defn left-up [state] (assoc-in state [:left :direction 1] -0.01))
 (defn left-down [state] (assoc-in state [:left :direction 1] 0.01))
