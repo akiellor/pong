@@ -6,8 +6,8 @@
 (defn fill-rect [canvas x y dx dy]
   (.fillRect canvas x y dx dy))
 
-(defn fill-text [canvas text x y]
-  (set! (. canvas -font) "48px Monospace")
+(defn fill-text [canvas text size x y]
+  (set! (. canvas -font) (str size " Monospace"))
   (set! (. canvas -textAlign) "center")
   (.fillText canvas text x y))
 
@@ -32,16 +32,16 @@
 
 (defn text? [value] (and (contains? value :text) (contains? value :position)))
 
-(defn render-text [canvas text position]
+(defn render-text [canvas text size position]
   (let [cheight (.-height canvas)
         cwidth (.-width canvas)
         [x y] (percentage->coord position cheight cwidth)]
     (fill-style canvas "white")
-    (fill-text canvas text x y)))
+    (fill-text canvas text size x y)))
 
 (defn render-texts [canvas state]
   (let [texts (filter text? (vals state))]
-    (doall (map #(render-text canvas ((:text %) state) (:position %)) texts))))
+    (doall (map #(render-text canvas ((:text %) state) (or (:size %) "48px") (:position %)) texts))))
 
 (defn render [canvas state]
   (let [height (.-height canvas)
