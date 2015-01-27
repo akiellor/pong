@@ -3,15 +3,34 @@
     [figwheel.client :as fw]
     [pong.physics :as p]
     [pong.render :as r]
-    [pong.keyboard :as k]))
+    [pong.keyboard :as k]
+    [pong.schedules :as s]))
 
 (enable-console-print!)
+
+(defn vanilla-ball []
+  {:rect {:height 0.01 :width 0.01}
+   :acceleration [0 0]
+   :velocity [0.5 0.5]
+   :position [0.5 0.5]})
+
+(defn start-game [state]
+  (-> state
+      (dissoc :countdown)
+      (assoc :ball (vanilla-ball))))
+
+(defn vanilla-countdown []
+  {:text (fn [state] (get-in state [:countdown :schedule :in]))
+   :size "100px"
+   :position [0.5 0.5]
+   :schedule {:in (s/seconds 3) :do start-game}})
 
 (defn score [state player]
   (let [velocity (get-in state [:ball :velocity])]
     (-> state
       (update-in [:game :scores player] inc)
-      (assoc-in [:ball :position] [0.5 0.5]))))
+      (assoc :countdown (vanilla-countdown))
+      (dissoc :ball))))
 
 (defn score-right [state]
   (score state :right))
@@ -29,7 +48,8 @@
 (defn right-down [state] (assoc-in state [:right :velocity 1] paddle-speed))
 (defn right-stop [state] (assoc-in state [:right :velocity 1] paddle-stop))
 
-(def vanilla-game-state {:game {:scores {:left 0 :right 0}}
+(def vanilla-game-state {
+                  :game {:scores {:left 0 :right 0}}
                   :left-text {:text (fn [state] (get-in state [:game :scores :left]))
                               :position [0.30 0.20]}
                   :left {:rect {:height 0.15 :width 0.01}
@@ -60,10 +80,7 @@
                   :upper-boundary {:rect {:height 0.01 :width 1}
                                    :position [0 0.01]
                                    :surface :horizontal}
-                  :ball {:rect {:height 0.01 :width 0.01}
-                         :position [0.5 0.5]
-                         :velocity [0.5 0.5]
-                         :acceleration [0 0]}})
+                  :countdown (vanilla-countdown)})
 
 (def state (atom vanilla-game-state))
 
@@ -75,6 +92,7 @@
     (set! (. canvas -height) 500)
     (set! (. canvas -width) 500)
     (r/start-render! state canvas)
+    (s/start-schedules! state)
     (p/start-physics! state)
     (k/start-keyboard! state)))
 
