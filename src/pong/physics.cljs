@@ -47,14 +47,24 @@
 (defn flip-direction-x [object]
   (update-in object [:velocity 0] -))
 
-(defn choose-flip [coll]
-  (case (:surface coll)
+(defn bounce [ball coll]
+  ((case (:surface coll)
         :horizontal flip-direction-y
         :vertical flip-direction-x
-        :else identity))
+        :else identity) ball))
+
+(defn abs [value] (max value (- value)))
+
+(defn spin [ball coll]
+  (let [py (or (get-in coll [:velocity 1]) 0)]
+    (if (= py 0)
+      ball
+      (assoc ball :acceleration [0 (* 0.007 (/ py (abs py)))]))))
 
 (defn reflects [ball colls]
-  (reduce #((choose-flip %2) %1) ball colls))
+  (reduce #(-> %1
+               (bounce %2)
+               (spin %2)) ball colls))
 
 (defn collisions [state]
   (let [ball (:ball state)
