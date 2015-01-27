@@ -32,7 +32,7 @@
 (def vanilla-game-state {:game {:scores {:left 0 :right 0}}
                   :left-text {:text (fn [state] (get-in state [:game :scores :left]))
                               :position [0.30 0.20]}
-                  :left {:rect {:height 0.05 :width 0.01}
+                  :left {:rect {:height 0.15 :width 0.01}
                          :position [0.05 0.5]
                          :surface :vertical
                          :keyboard {87 {:press left-up :release left-stop}
@@ -44,7 +44,7 @@
                                :on-collide score-left}
                   :right-text {:text (fn [state] (get-in state [:game :scores :right]))
                                :position [0.70 0.20]}
-                  :right {:rect {:height 0.05 :width 0.01}
+                  :right {:rect {:height 0.15 :width 0.01}
                           :position [0.94 0.5]
                           :surface :vertical
                           :keyboard {38 {:press right-up :release right-stop}
