@@ -47,32 +47,34 @@
 (defn flip-direction-x [object]
   (update-in object [:velocity 0] -))
 
-(defn bounce [ball coll]
+(defn bounce [entity coll]
   ((case (:surface coll)
         :horizontal flip-direction-y
         :vertical flip-direction-x
-        :else identity) ball))
+        :else identity) entity))
 
 (defn abs [value] (max value (- value)))
 
-(defn spin [ball coll]
+(defn spin [entity coll]
   (let [py (or (get-in coll [:velocity 1]) 0)]
     (if (= py 0)
-      ball
-      (assoc ball :acceleration [0 (* 0.007 (/ py (abs py)))]))))
+      entity
+      (assoc entity :acceleration [0 (* 0.007 (/ py (abs py)))]))))
 
-(defn reflects [ball colls]
+(defn reflects [entity colls]
   (reduce #(-> %1
                (bounce %2)
-               (spin %2)) ball colls))
+               (spin %2)) entity colls))
+
+(defn entity-collisions [state name entity]
+  (let [boundaries (filter #(contains? % :surface) (vals (dissoc state name)))
+        colls (filter #(intersect? entity %) boundaries)]
+    (-> state
+        (update-in [name] #(reflects % colls))
+        (on-collides colls))))
 
 (defn collisions [state]
-  (let [ball (:ball state)
-        boundaries (filter #(contains? % :surface) (vals state))
-        colls (filter #(intersect? ball %) boundaries)]
-    (-> state
-        (update-in [:ball] #(reflects % colls))
-        (on-collides colls))))
+  (reduce #(entity-collisions %1 (first %2) (last %2)) state (filter #(:velocity (last %)) (seq state))))
 
 (defn physics [state]
   (-> state
