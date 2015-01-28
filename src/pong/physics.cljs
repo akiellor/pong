@@ -81,35 +81,5 @@
       movement
       collisions))
 
-(defn reflect [object boundary direction]
-  (let [[[ox oy] [odx ody]] (rect->cordinates object)
-        [[bx by] [bdx bdy]] (rect->cordinates boundary)]
-    (case direction
-      :up (-> object
-              (assoc-in [:position 1] (- by (get-in object [:rect :height])))
-              flip-direction-y)
-      :down (-> object
-                (assoc-in [:position 1] bdy)
-                flip-direction-y)
-      :left (-> object
-                (assoc-in [:position 0] ox)
-                flip-direction-x)
-      :right (-> object
-                 (assoc-in [:position 0] bdx)
-                 flip-direction-x))))
-
-
-(defn reflect-right [state entity boundary]
-  (update-in state [entity] #(reflect % boundary :right)))
-
-(defn reflect-left [state entity boundary]
-  (update-in state [entity] #(reflect % boundary :left)))
-
-(defn reflect-up [state entity boundary]
-  (update-in state [entity] #(reflect % boundary :up)))
-
-(defn reflect-down [state entity boundary]
-  (update-in state [entity] #(reflect % boundary :down)))
-
 (defn start-physics! [state]
   (js/setInterval (fn [] (swap! state physics)) 10))
