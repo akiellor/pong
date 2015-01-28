@@ -1,4 +1,5 @@
-(ns pong.physics)
+(ns pong.physics
+  (:require [pong.world :as w]))
 
 (def drag 0.01)
 
@@ -17,8 +18,7 @@
   (contains? value :velocity))
 
 (defn movement [state]
-  (let [moveables (filter #(moveable? (last %)) (seq state))]
-    (reduce #(assoc %1 (first %2) (move (accelerate (last %2)))) state moveables)))
+  (w/change state moveable? #(move (accelerate %))))
 
 (defn rect->cordinates [rect]
   (let [[x y] (:position rect)]
