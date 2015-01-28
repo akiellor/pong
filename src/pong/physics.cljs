@@ -18,7 +18,7 @@
   (contains? value :velocity))
 
 (defn movement [state]
-  (w/change state moveable? #(move (accelerate %))))
+  (w/change-entity state moveable? #(-> % move accelerate)))
 
 (defn rect->cordinates [rect]
   (let [[x y] (:position rect)]
@@ -73,8 +73,12 @@
         (update-in [name] #(reflects % colls))
         (on-collides colls))))
 
+(defn moving? [entity]
+  (let [velocity (:velocity entity)]
+    (and velocity (not (= velocity [0 0])))))
+
 (defn collisions [state]
-  (reduce #(entity-collisions %1 (first %2) (last %2)) state (filter #(:velocity (last %)) (seq state))))
+  (w/change-world state moving? entity-collisions))
 
 (defn physics [state]
   (-> state

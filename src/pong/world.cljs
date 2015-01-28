@@ -1,5 +1,8 @@
 (ns pong.world)
 
-(defn change [state pred reducer]
+(defn change-world [state pred t]
   (let [entities (filter #(pred (last %)) (seq state))]
-    (reduce #(assoc %1 (first %2) (reducer (last %2))) state entities)))
+    (reduce #(t %1 (first %2) (last %2)) state entities)))
+
+(defn change-entity [state pred t]
+  (change-world state pred #(assoc %1 %2 (t %3))))
