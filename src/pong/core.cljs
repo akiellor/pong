@@ -53,7 +53,7 @@
                   :left-text {:text (fn [state] (get-in state [:game :scores :left]))
                               :position [0.30 0.20]}
                   :left {:rect {:height 0.15 :width 0.01}
-                         :position [0.05 0.5]
+                         :position [0.055 0.5]
                          :surface :vertical
                          :keyboard {87 {:press left-up :release left-stop}
                                     83 {:press left-down :release left-stop}}
@@ -65,7 +65,7 @@
                   :right-text {:text (fn [state] (get-in state [:game :scores :right]))
                                :position [0.70 0.20]}
                   :right {:rect {:height 0.15 :width 0.01}
-                          :position [0.94 0.5]
+                          :position [0.935 0.5]
                           :surface :vertical
                           :keyboard {38 {:press right-up :release right-stop}
                                      40 {:press right-down :release right-stop}}
