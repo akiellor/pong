@@ -37,9 +37,11 @@
           (<= ay by bdy ady)
           (<= by ay ady bdy)))))
 
+(defn on-collide? [entity colls]
+  (and (:on-collide entity) (some #{entity} colls)))
+
 (defn on-collides [state colls]
-  (let [with-fn (filter #(:on-collide %) colls)]
-    (reduce #((:on-collide %2) %1 %2) state with-fn)))
+  (w/change-world state #(on-collide? % colls) #((:on-collide %3) %1)))
 
 (defn flip-direction-y [object]
   (update-in object [:velocity 1] -))
