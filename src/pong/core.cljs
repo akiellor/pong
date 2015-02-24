@@ -10,6 +10,7 @@
 
 (defn vanilla-ball []
   {:rect {:height 0.01 :width 0.01}
+   :bouncy true
    :acceleration [0 0]
    :velocity [0.5 0.5]
    :position [0.5 0.5]})
@@ -55,6 +56,7 @@
                   :left {:rect {:height 0.15 :width 0.01}
                          :position [0.055 0.5]
                          :surface :vertical
+                         :range-y [0.02 0.98]
                          :keyboard {87 {:press left-up :release left-stop}
                                     83 {:press left-down :release left-stop}}
                          :velocity [0 0]}
@@ -67,6 +69,7 @@
                   :right {:rect {:height 0.15 :width 0.01}
                           :position [0.935 0.5]
                           :surface :vertical
+                          :range-y [0.02 0.98]
                           :keyboard {38 {:press right-up :release right-stop}
                                      40 {:press right-down :release right-stop}}
                           :velocity [0 0]}

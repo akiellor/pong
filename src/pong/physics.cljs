@@ -28,14 +28,14 @@
   (let [[[ax ay] [adx ady]] (rect->cordinates recta)
         [[bx by] [bdx bdy]] (rect->cordinates rectb)]
     (and
-      (or (<= ax bx adx bdx)
-          (<= bx ax bdx adx)
-          (<= ax bx bdx adx)
-          (<= bx ax adx bdx))
-      (or (<= ay by ady bdy)
-          (<= by ay bdy ady)
-          (<= ay by bdy ady)
-          (<= by ay ady bdy)))))
+      (or (< ax bx adx bdx)
+          (< bx ax bdx adx)
+          (< ax bx bdx adx)
+          (< bx ax adx bdx))
+      (or (< ay by ady bdy)
+          (< by ay bdy ady)
+          (< ay by bdy ady)
+          (< by ay ady bdy)))))
 
 (defn on-collide? [entity colls]
   (and (:on-collide entity) (some #{entity} colls)))
@@ -63,10 +63,28 @@
       entity
       (assoc entity :acceleration [0 (* 0.007 (/ py (abs py)))]))))
 
+(defn limited? [entity]
+  (contains? entity :range-y))
+
+(defn limit [state name entity]
+  (let [[ry rdy] (:range-y entity)
+        height (get-in entity [:rect :height])
+        max-dy (- rdy height)
+        [[_ y] [_ dy]] (rect->cordinates entity)]
+    (assoc state name (cond
+                        (> ry y) (assoc-in entity [:position 1] ry)
+                        (< rdy dy) (assoc-in entity [:position 1] max-dy)
+                        :else entity))))
+
+(defn limits [state]
+  (w/change-world state limited? limit))
+
 (defn reflects [entity colls]
-  (reduce #(-> %1
-               (bounce %2)
-               (spin %2)) entity colls))
+  (if (:bouncy entity)
+    (reduce #(-> %1
+                 (bounce %2)
+                 (spin %2)) entity colls)
+    entity))
 
 (defn entity-collisions [state name entity]
   (let [boundaries (filter #(contains? % :surface) (vals (dissoc state name)))
@@ -82,10 +100,7 @@
 (defn collisions [state]
   (w/change-world state moving? entity-collisions))
 
-(defn physics [state]
-  (-> state
-      movement
-      collisions))
+(def physics (comp movement collisions limits))
 
 (defn start-physics! [state]
   (js/setInterval (fn [] (swap! state physics)) 10))
