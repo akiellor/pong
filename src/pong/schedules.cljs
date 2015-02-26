@@ -12,8 +12,10 @@
       (update-in state [name :schedule :in] dec))))
 
 (defn schedules [state]
-  (let [schedules (filter #(:schedule (last %)) (seq state))]
-    (reduce schedule state schedules)))
+  (if (= (mod (:tick state) 100) 0)
+    (let [schedules (filter #(:schedule (last %)) (seq state))]
+      (reduce schedule state schedules))
+    state))
 
 (defn start-schedules! [state]
   (js/setInterval (fn [] (swap! state schedules)) 1000))

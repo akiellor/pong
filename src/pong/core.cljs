@@ -50,6 +50,7 @@
 (defn right-stop [state] (assoc-in state [:right :velocity 1] paddle-stop))
 
 (def vanilla-game-state {
+                  :tick 0
                   :game {:scores {:left 0 :right 0}}
                   :left-text {:text (fn [state] (get-in state [:game :scores :left]))
                               :position [0.30 0.20]}
@@ -90,13 +91,25 @@
 (defn set-acceleration [x y]
   (swap! state #(assoc-in vanilla-game-state [:ball :acceleration] [x y])))
 
+(defn inc-tick [state]
+  (update-in state [:tick] inc))
+
+(defn tick [state]
+  (do
+    (swap! state (fn [v] (-> v
+                             inc-tick
+                             s/schedules
+                             p/physics)))))
+
+(defn start-tick! [state]
+  (js/setInterval #(tick state) 10))
+
 (defn main []
   (let [canvas (.getContext (.getElementById js/document "app") "2d")]
     (set! (. canvas -height) 500)
     (set! (. canvas -width) 500)
+    (k/start-keyboard! state)
     (r/start-render! state canvas)
-    (s/start-schedules! state)
-    (p/start-physics! state)
-    (k/start-keyboard! state)))
+    (start-tick! state)))
 
 (fw/start {:on-jsload main})
