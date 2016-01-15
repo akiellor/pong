@@ -35,6 +35,7 @@
                            :main pong.core
                            :optimizations :advanced
                            :pretty-print false}}]}
+  :min-lein-version "2.0.0"
   :main pong.server
   :aot :all
   :java-target "1.7"
