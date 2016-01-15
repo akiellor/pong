@@ -7,3 +7,8 @@ ClojureScript implementation of pong [http://pong-cljs.herokuapp.com](http://pon
 `
 $ lein figwheel
 `
+
+## Keys
+
+Right Paddle: Use UP and DOWN
+Left Paddle: Use W and S
