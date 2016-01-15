@@ -1,6 +1,5 @@
 (ns pong.core
   (:require
-    [figwheel.client :as fw]
     [pong.physics :as p]
     [pong.render :as r]
     [pong.keyboard :as k]
@@ -112,4 +111,4 @@
     (r/start-render! state canvas)
     (start-tick! state)))
 
-(fw/start {:on-jsload main})
+(main)
